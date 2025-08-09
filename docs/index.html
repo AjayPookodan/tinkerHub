@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rock, Paper, Scissors - Best of 3</title>
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Chakra Petch and Poppins -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@700&family=Poppins:wght@700&display=swap" rel="stylesheet">
+    <!-- Tone.js for sound effects -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.77/Tone.js"></script>
+    <style>
+        /* Custom styles inspired by the provided image */
+        :root {
+            --gingham-blue: rgba(127, 179, 213, 0.6);
+            --gingham-bg: #eaf2f8;
+            --highlight-pink: #F472B6;
+            --highlight-green: #D1F2EB;
+            --highlight-red: #FADBD8;
+            --highlight-yellow: #FDE68A;
+            --dark-text: #17202A;
+            --light-text: #FDFEFE;
+            --font-main: 'Chakra Petch', sans-serif;
+            --font-marquee: 'Poppins', sans-serif;
+        }
+
+        body {
+            font-family: var(--font-main);
+            background-color: var(--gingham-bg);
+            background-image:
+                linear-gradient(90deg, var(--gingham-blue) 50%, transparent 50%),
+                linear-gradient(var(--gingham-blue) 50%, transparent 50%);
+            background-size: 30px 30px;
+            color: var(--dark-text);
+            overflow: hidden; /* Hide marquee overflow */
+            font-weight: 700;
+            letter-spacing: 0.05em;
+        }
+
+        .marquee-container {
+            position: absolute;
+            top: 5%;
+            left: -5%;
+            width: 110%;
+            background-color: var(--highlight-pink);
+            color: var(--dark-text);
+            padding: 8px 0;
+            white-space: nowrap;
+            transform: rotate(-2deg);
+            z-index: 10;
+            font-family: var(--font-marquee);
+        }
+
+        .marquee-content {
+            display: inline-block;
+            padding-left: 100%;
+            animation: marquee 20s linear infinite;
+        }
+
+        @keyframes marquee {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-100%); }
+        }
+
+        .card {
+            background-color: #FFFFFF;
+            border: 1px solid #E5E7EB;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+            transform: rotate(-3deg);
+            margin-top: 50px; /* Make space for marquee */
+        }
+
+        .choice-btn {
+            transition: all 0.2s ease-in-out;
+            border-radius: 9999px;
+            background-color: #F3F4F6;
+            color: var(--dark-text);
+            border: 2px solid #D1D5DB;
+        }
+        .choice-btn:hover {
+            transform: translateY(-8px) scale(1.1);
+            background-color: #E5E7EB;
+            border-color: #9CA3AF;
+        }
+
+        .styled-btn {
+            text-transform: uppercase;
+            border-radius: 8px;
+            transition: all 0.2s ease-in-out;
+            background-color: var(--dark-text);
+            color: var(--light-text);
+        }
+        .styled-btn:hover {
+            transform: scale(1.03);
+            background-color: #374151;
+        }
+        .btn-red {
+            background-color: #CB4335;
+        }
+        .btn-red:hover {
+             background-color: #B03A2E;
+        }
+
+        .hidden { display: none; }
+
+        /* Text highlight style */
+        .highlight {
+            padding: 2px 8px;
+            color: #000;
+            display: inline;
+            line-height: 1.2;
+        }
+
+        /* Animations */
+        @keyframes popIn {
+            from { opacity: 0; transform: scale(0.8) rotate(-5deg); }
+            to { opacity: 1; transform: scale(1) rotate(-3deg); }
+        }
+        @keyframes final-shake {
+            0%, 100% { transform: rotate(0deg); }
+            25% { transform: rotate(-15deg); }
+            75% { transform: rotate(15deg); }
+        }
+        @keyframes dramatic-pulse {
+            0% { transform: scale(1); text-shadow: 0 0 5px rgba(0,0,0,0.2); }
+            50% { transform: scale(1.05); text-shadow: 0 0 25px rgba(0,0,0,0.4); }
+            100% { transform: scale(1); text-shadow: 0 0 5px rgba(0,0,0,0.2); }
+        }
+        .animate-popIn { animation: popIn 0.5s ease-out forwards; }
+        .animate-final-shake { animation: final-shake 0.4s cubic-bezier(.36,.07,.19,.97) both; }
+        .animate-dramatic-pulse { animation: dramatic-pulse 1.5s ease-in-out infinite; }
+
+        /* Main container transitions */
+        #intro-screen, #game-container, #result-container, #final-screen, #final-round-transition {
+            transition: opacity 400ms ease-in-out;
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen p-4">
+
+    <div class="marquee-container">
+        <div class="marquee-content">
+            <span>UDAIPP KALI ✦ TINKERHUB ✦ THE UNFAIR GAME ✦ </span>
+            <span>UDAIPP KALI ✦ TINKERHUB ✦ THE UNFAIR GAME ✦ </span>
+            <span>UDAIPP KALI ✦ TINKERHUB ✦ THE UNFAIR GAME ✦ </span>
+            <span>UDAIPP KALI ✦ TINKERHUB ✦ THE UNFAIR GAME ✦ </span>
+        </div>
+    </div>
+
+    <div class="card animate-popIn text-center p-6 md:p-10 rounded-2xl max-w-xl w-full mx-auto">
+        
+        <!-- Intro Screen -->
+        <div id="intro-screen">
+            <h1 class="text-4xl md:text-5xl mb-2 uppercase tracking-wider">The Udaipp Kali</h1>
+            <p class="text-lg text-gray-700 mb-4">(The <span class="highlight" style="background-color: var(--highlight-yellow);">Unfair</span> Game)</p>
+            <p class="text-gray-600 mb-8 max-w-sm mx-auto">You get one win. The bot gets the rest. Think you can handle it?</p>
+            <button id="start-game-btn" class="w-full styled-btn py-3 px-4">Start Game</button>
+        </div>
+
+        <!-- Main Game Container -->
+        <div id="game-container" class="hidden" style="opacity: 0;">
+            <div id="scoreboard" class="flex justify-center items-center gap-8 my-6">
+                <div>
+                    <span class="text-xl">You:</span>
+                    <span id="player-score" class="text-4xl ml-2">0</span>
+                </div>
+                <div>
+                    <span class="text-xl">Bot:</span>
+                    <span id="bot-score" class="text-4xl ml-2">0</span>
+                </div>
+            </div>
+            <div id="choices-container" class="flex justify-center gap-4 md:gap-6 mb-8">
+                <button onclick="play('rock')" class="choice-btn p-4 md:p-6 text-4xl md:text-5xl">✊</button>
+                <button onclick="play('paper')" class="choice-btn p-4 md:p-6 text-4xl md:text-5xl">✋</button>
+                <button onclick="play('scissors')" class="choice-btn p-4 md:p-6 text-4xl md:text-5xl">✌️</button>
+            </div>
+        </div>
+
+        <!-- Results Display -->
+        <div id="result-container" class="hidden" style="opacity: 0;">
+            <div class="flex justify-around items-center mb-6">
+                <div class="flex flex-col items-center"><p id="player-choice" class="text-6xl"></p></div>
+                <div class="flex flex-col items-center"><p id="bot-choice" class="text-6xl"></p></div>
+            </div>
+            <p id="result-message" class="text-3xl mb-8"></p>
+            <button id="next-round-btn" class="w-full styled-btn py-3 px-4">Next Round</button>
+        </div>
+        
+        <!-- Final Round Transition -->
+        <div id="final-round-transition" class="hidden" style="opacity: 0;">
+            <h2 class="text-6xl text-gray-800 animate-dramatic-pulse">Let the Final Round Begin!</h2>
+        </div>
+
+        <!-- Final Screen -->
+        <div id="final-screen" class="hidden" style="opacity: 0;">
+            <p id="final-emoji" class="text-8xl mb-4">🖕</p>
+            <p id="final-insult" class="text-2xl text-gray-700 mb-8">Were you even trying?</p>
+            <button id="play-again-btn" class="w-full styled-btn btn-red py-3 px-4">Play Again</button>
+        </div>
+
+    </div>
+
+    <script>
+        // --- SOUND SETUP ---
+        const uiSound = new Tone.Synth({ oscillator: { type: 'sine' }, envelope: { attack: 0.01, decay: 0.1, sustain: 0.2, release: 0.2 } }).toDestination();
+        const winSound = new Tone.Synth({ oscillator: { type: 'triangle' }, envelope: { attack: 0.01, decay: 0.2, sustain: 0.1, release: 0.2 } }).toDestination();
+        const loseSound = new Tone.Synth({ oscillator: { type: 'square' }, envelope: { attack: 0.01, decay: 0.3, sustain: 0, release: 0.2 } }).toDestination();
+        const fartSound = new Tone.MembraneSynth({ pitchDecay: 0.1, octaves: 4, oscillator: { type: 'sine' }, envelope: { attack: 0.01, decay: 0.5, sustain: 0.01, release: 0.8 } }).toDestination();
+        const chimeSound = new Tone.FMSynth({ harmonicity: 3.01, modulationIndex: 14, envelope: { attack: 0.01, decay: 0.2, release: 0.2 }, modulationEnvelope: { attack: 0.01, decay: 0.3, release: 0.2 } }).toDestination();
+        chimeSound.volume.value = -10;
+        const ambientPad = new Tone.NoiseSynth({ noise: { type: 'pink' }, envelope: { attack: 5, decay: 0.1, sustain: 0.2, release: 5 } }).toDestination();
+        ambientPad.volume.value = -30; // very quiet
+        // New teasing sound
+        const teasingSound = new Tone.Synth({ oscillator: { type: 'sawtooth' }, envelope: { attack: 0.01, decay: 0.1, sustain: 0.1, release: 0.1 } }).toDestination();
+        
+        // --- DOM ELEMENTS ---
+        const introScreen = document.getElementById('intro-screen');
+        const gameContainer = document.getElementById('game-container');
+        const choicesContainer = document.getElementById('choices-container');
+        const resultContainer = document.getElementById('result-container');
+        const finalRoundTransition = document.getElementById('final-round-transition');
+        const finalScreen = document.getElementById('final-screen');
+        const scoreboard = document.getElementById('scoreboard');
+        const playerChoiceElem = document.getElementById('player-choice');
+        const botChoiceElem = document.getElementById('bot-choice');
+        const resultMessageElem = document.getElementById('result-message');
+        const playerScoreElem = document.getElementById('player-score');
+        const botScoreElem = document.getElementById('bot-score');
+        const startGameBtn = document.getElementById('start-game-btn');
+        const nextRoundBtn = document.getElementById('next-round-btn');
+        const playAgainBtn = document.getElementById('play-again-btn');
+        const finalEmoji = document.getElementById('final-emoji');
+        const finalInsultElem = document.getElementById('final-insult');
+
+        // --- GAME STATE ---
+        let round = 1;
+        let playerScore = 0;
+        let botScore = 0;
+        let isTransitioning = false;
+        let winOrder = [];
+        const insults = [
+            "Were you even trying?",
+            "Maybe try closing your eyes next time.",
+            "My grandmother plays better than you.",
+            "I've seen rocks with better strategy.",
+            "Better luck next time... or not.",
+            "Is that all you've got?"
+        ];
+
+        const choicesMap = { rock: '✊', paper: '✋', scissors: '✌️' };
+
+        // --- GAME LOGIC ---
+        function getWinningMove(playerMove) {
+            if (playerMove === 'rock') return 'paper';
+            if (playerMove === 'paper') return 'scissors';
+            return 'rock';
+        }
+
+        function getLosingMove(playerMove) {
+            if (playerMove === 'rock') return 'scissors';
+            if (playerMove === 'paper') return 'rock';
+            return 'paper';
+        }
+
+        function shuffleWinOrder() {
+            winOrder = ['bot_wins', 'player_wins'];
+            // Proper Fisher-Yates shuffle algorithm for true randomness
+            for (let i = winOrder.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [winOrder[i], winOrder[j]] = [winOrder[j], winOrder[i]];
+            }
+        }
+
+        function play(playerMove) {
+            if (isTransitioning) return;
+            isTransitioning = true;
+            uiSound.triggerAttackRelease('C5', '8n');
+
+            gameContainer.style.opacity = '0';
+
+            setTimeout(() => {
+                gameContainer.classList.add('hidden');
+
+                if (round === 3) {
+                    fartSound.triggerAttackRelease('C1', '8n');
+                    
+                    // Select a random insult
+                    const randomInsult = insults[Math.floor(Math.random() * insults.length)];
+                    finalInsultElem.textContent = randomInsult;
+
+                    finalScreen.classList.remove('hidden');
+                    finalEmoji.classList.add('animate-final-shake');
+                    requestAnimationFrame(() => { finalScreen.style.opacity = '1'; });
+
+                    // Play the teasing sound after a delay
+                    setTimeout(() => {
+                        const now = Tone.now();
+                        teasingSound.triggerAttackRelease('C4', '8n', now);
+                        teasingSound.triggerAttackRelease('G3', '8n', now + 0.15);
+                        teasingSound.triggerAttackRelease('C4', '8n', now + 0.3);
+                        teasingSound.triggerAttackRelease('G3', '8n', now + 0.45);
+                    }, 600); // Play after 600ms
+
+                } else { // Logic for rounds 1 and 2
+                    let botMove;
+                    const roundOutcome = winOrder[round - 1]; // Get 'bot_wins' or 'player_wins'
+
+                    if (roundOutcome === 'bot_wins') {
+                        loseSound.triggerAttackRelease('C3', '4n');
+                        botMove = getWinningMove(playerMove);
+                        botScore++;
+                        resultMessageElem.innerHTML = 'Bot <span class="highlight" style="background-color: var(--highlight-red);">Wins!</span>';
+                    } else { // player_wins
+                        winSound.triggerAttackRelease('G4', '8n', Tone.now());
+                        chimeSound.triggerAttackRelease('C6', '8n', Tone.now() + 0.05); // Layered chime
+                        botMove = getLosingMove(playerMove);
+                        playerScore++;
+                        resultMessageElem.innerHTML = 'You <span class="highlight" style="background-color: var(--highlight-green);">Win!</span>';
+                    }
+                    
+                    // Update button text for the next round
+                    if (round === 1) {
+                        nextRoundBtn.textContent = 'Next Round';
+                    } else {
+                        nextRoundBtn.textContent = 'Final Round';
+                    }
+
+                    playerChoiceElem.textContent = choicesMap[playerMove];
+                    botChoiceElem.textContent = choicesMap[botMove];
+                    playerScoreElem.textContent = playerScore;
+                    botScoreElem.textContent = botScore;
+                    
+                    resultContainer.classList.remove('hidden');
+                    requestAnimationFrame(() => { resultContainer.style.opacity = '1'; });
+                }
+                isTransitioning = false;
+            }, 400);
+        }
+        
+        function nextRound() {
+            if (isTransitioning) return;
+            isTransitioning = true;
+            uiSound.triggerAttackRelease('C5', '8n');
+
+            resultContainer.style.opacity = '0';
+
+            setTimeout(() => {
+                resultContainer.classList.add('hidden');
+                round++;
+
+                if (round === 3) { // Special transition to the final round
+                    finalRoundTransition.classList.remove('hidden');
+                    requestAnimationFrame(() => { finalRoundTransition.style.opacity = '1'; });
+                    loseSound.triggerAttackRelease('A2', '1n'); // Ominous sound
+
+                    setTimeout(() => {
+                        finalRoundTransition.style.opacity = '0';
+                        setTimeout(() => {
+                            finalRoundTransition.classList.add('hidden');
+                            gameContainer.classList.remove('hidden');
+                            requestAnimationFrame(() => { gameContainer.style.opacity = '1'; });
+                            isTransitioning = false;
+                        }, 400); // Wait for fade out
+                    }, 2500); // Show message for 2.5 seconds
+                } else { // Normal transition from round 1 to 2
+                    gameContainer.classList.remove('hidden');
+                    requestAnimationFrame(() => { gameContainer.style.opacity = '1'; });
+                    isTransitioning = false;
+                }
+            }, 400);
+        }
+
+        async function startGame() {
+            if (isTransitioning) return;
+            isTransitioning = true;
+            
+            // Start audio context on first user interaction
+            if (Tone.context.state !== 'running') {
+                await Tone.start();
+            }
+            uiSound.triggerAttackRelease('C5', '8n');
+            
+            shuffleWinOrder(); // Set the random win order for this game
+
+            // Start ambient sound loop
+            if (Tone.Transport.state !== 'started') {
+                Tone.Transport.scheduleRepeat(time => {
+                    ambientPad.triggerAttackRelease("4n", time);
+                }, "2m");
+                Tone.Transport.start();
+            }
+
+            introScreen.style.opacity = '0';
+
+            setTimeout(() => {
+                introScreen.classList.add('hidden');
+                gameContainer.classList.remove('hidden');
+                requestAnimationFrame(() => { gameContainer.style.opacity = '1'; });
+                isTransitioning = false;
+            }, 400);
+        }
+
+        function resetGame() {
+            if (isTransitioning) return;
+            isTransitioning = true;
+            uiSound.triggerAttackRelease('A4', '8n');
+
+            finalScreen.style.opacity = '0';
+
+            setTimeout(() => {
+                finalEmoji.classList.remove('animate-final-shake');
+                finalScreen.classList.add('hidden');
+                
+                round = 1;
+                playerScore = 0;
+                botScore = 0;
+
+                playerScoreElem.textContent = '0';
+                botScoreElem.textContent = '0';
+                
+                gameContainer.classList.add('hidden');
+                gameContainer.style.opacity = '0';
+
+                introScreen.classList.remove('hidden');
+                requestAnimationFrame(() => { introScreen.style.opacity = '1'; });
+                isTransitioning = false;
+            }, 400);
+        }
+
+        // Event Listeners
+        startGameBtn.addEventListener('click', startGame);
+        nextRoundBtn.addEventListener('click', nextRound);
+        playAgainBtn.addEventListener('click', resetGame);
+    </script>
+</body>
+</html>
